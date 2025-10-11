@@ -7,11 +7,13 @@ import {
   deleteRefreshToken,
   findExistingUser,
   findUserByEmail,
+  findUserByToken,
   findUserByUsername,
   generateAccessToken,
   generateAndUpdateUserWithResetToken,
   generateRefreshToken,
   saveRefreshToken,
+  updateUserPasswordwithToken,
 } from '../../service/user-service';
 import { StatusCodes } from 'http-status-codes';
 import { formatError, formatSuccess } from '../../utils/response-handling';
@@ -215,7 +217,7 @@ authController.put(
 
     if (!updatedUser.value) {
       res
-        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .status(StatusCodes.NOT_FOUND)
         .json(formatError({ message: 'Error while updating user' }));
       return;
     }
@@ -234,6 +236,66 @@ authController.put(
     res.status(StatusCodes.OK).json(
       formatSuccess({
         message: 'Email sent successfully, please visit you inbox',
+      })
+    );
+  }
+);
+
+authController.put(
+  '/new-password/:token',
+  validate({
+    params: { token: z.string() },
+    body: { oldPassword: z.string(), newPassword: z.string() },
+  }),
+  async (req, res) => {
+    const { token } = req.params;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!token) {
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json(formatError({ message: 'Token must be provided' }));
+      return;
+    }
+
+    const user = await findUserByToken(token);
+
+    if (user.isErr()) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(formatError(user.error));
+      return;
+    }
+
+    if (!user.value) {
+      res
+        .status(StatusCodes.NOT_FOUND)
+        .json(formatError({ message: 'User doesnt exist' }));
+      return;
+    }
+
+    if (oldPassword !== newPassword) {
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json(formatError({ message: 'Passwords doesnt match' }));
+      return;
+    }
+
+    const updatedUser = await updateUserPasswordwithToken(
+      user.value.id,
+      newPassword
+    );
+
+    if (updatedUser.isErr()) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(formatError(updatedUser.error));
+      return;
+    }
+
+    res.status(StatusCodes.OK).json(
+      formatSuccess({
+        message: 'Password updated successfully',
       })
     );
   }

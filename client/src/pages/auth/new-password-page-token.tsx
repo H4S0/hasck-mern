@@ -23,7 +23,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePasswordReset } from '@/hooks/use-new-password-token';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const passwordSchema = z
@@ -42,11 +42,13 @@ const PasswordResetForm = () => {
   const form = useForm<z.infer<typeof passwordSchema>>({
     resolver: zodResolver(passwordSchema),
   });
+  const navigate = useNavigate();
 
   const onSubmit: SubmitHandler<z.infer<typeof passwordSchema>> = (data) => {
     mutate(data, {
       onSuccess: (response) => {
         toast.success(response.message);
+        navigate('/auth/login');
       },
       onError: (error) => {
         toast.error(error.message);
@@ -55,51 +57,61 @@ const PasswordResetForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-lg sm:max-w-lg">
-      <CardHeader>
-        <CardTitle>Init password reset</CardTitle>
-        <CardDescription>
-          Make sure to insert correct email, you will recive confirmation
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="oldPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>New password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div className="flex items-center justify-center min-h-screen">
+      <Card className="w-full max-w-lg sm:max-w-lg">
+        <CardHeader>
+          <CardTitle>Init password reset</CardTitle>
+          <CardDescription>
+            Make sure to insert correct email, you will recive confirmation
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="oldPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="newPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <Button type="submit" disabled={isPending} className="w-full">
-              {isPending ? 'Loading' : 'Submit'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+              <Button type="submit" disabled={isPending} className="w-full">
+                {isPending ? 'Loading' : 'Submit'}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

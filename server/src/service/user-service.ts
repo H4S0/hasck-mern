@@ -181,8 +181,8 @@ export const updateUserEmail = (userId: string, email: string) => {
       email: email,
     }),
     (e) => ({
-      code: 'UPDATING_EMAIL_ERROR',
-      message: `Error while updating users email ${err(e as Error)}`,
+      code: 'GENERATE_ACCESS_TOKEN_ERROR',
+      message: `Error while generating access token ${err(e as Error)}`,
     })
   );
 };
@@ -233,8 +233,41 @@ export async function deleteRefreshToken(refreshToken: string) {
   return ResultAsync.fromPromise(
     User.updateOne({ refreshToken }, { $set: { refreshToken: null } }),
     (e) => ({
-      code: 'LOGOUT_USER_ERROR',
-      message: `Error while logging out ${err(e as Error)}`,
+      code: 'DELETE_TOKEN_ERROR',
+      message: `Error while deleting refresh token${err(e as Error)}`,
+    })
+  );
+}
+
+export async function findUserByToken(token: string) {
+  return ResultAsync.fromPromise(
+    User.findOne({ passwordResetToken: token }),
+    (e) => ({
+      code: 'FIND_USER_BYTOKEN_ERROR',
+      message: `Error while finding user ${err(e as Error)}`,
+    })
+  );
+}
+
+export async function updateUserPasswordwithToken(
+  _id: string,
+  password: string
+) {
+  const hashedPassword = await hashPassword(password);
+
+  if (hashedPassword.isErr()) {
+    return err(hashedPassword.error);
+  }
+
+  return ResultAsync.fromPromise(
+    User.findByIdAndUpdate(_id, {
+      password: hashedPassword.value,
+      passwordResetExpire: null,
+      passwordResetToken: null,
+    }),
+    (e) => ({
+      code: 'UPDATING_USER_PASSWORD',
+      message: `Error while updating user password ${err(e as Error)}`,
     })
   );
 }
