@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
+  Form,
   FormField,
   FormItem,
   FormLabel,
@@ -8,25 +9,35 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useInitPasswordReset } from '@/hooks/use-init-forget-password';
+import { usePasswordResetInit } from '@/hooks/use-init-forget-password';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, useForm, type SubmitHandler } from 'react-hook-form';
+import { useForm, type SubmitHandler } from 'react-hook-form';
+import { toast } from 'sonner';
 import z from 'zod';
 
-const InitPasswordResetSchema = z.object({
+export const InitPasswordResetSchema = z.object({
   email: z.email(),
 });
 
 const InitForgetPasswordPage = () => {
-  const { mutate, isPending } = useInitPasswordReset();
+  const { mutate, isPending } = usePasswordResetInit();
 
   const form = useForm<z.infer<typeof InitPasswordResetSchema>>({
     resolver: zodResolver(InitPasswordResetSchema),
   });
 
-  const onSubmit: SubmitHandler<
-    z.infer<typeof InitPasswordResetSchema>
-  > = () => {};
+  const onSubmit: SubmitHandler<z.infer<typeof InitPasswordResetSchema>> = (
+    data
+  ) => {
+    mutate(data, {
+      onSuccess: (response) => {
+        toast.success(response.message);
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    });
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen">

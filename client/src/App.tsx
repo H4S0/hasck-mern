@@ -8,8 +8,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { UserProvider } from './context/auth-context';
 import ProtectedRoutes from './components/additional/protected-routes';
 import { Toaster } from './components/ui/sonner';
-import InitForgetPasswordPage from './pages/auth/init-forget-password-page';
-import ForgetPasswordPage from './pages/auth/forget-password-page';
+import InitForgetPasswordPage from './pages/auth/init-forget-page';
+import ForgetPasswordPage from './pages/auth/new-password-page-token';
 
 const queryClient = new QueryClient();
 
