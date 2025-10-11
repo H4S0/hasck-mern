@@ -6,15 +6,21 @@ import {
   createUser,
   deleteRefreshToken,
   findExistingUser,
+  findUserByEmail,
   findUserByUsername,
   generateAccessToken,
+  generateAndUpdateUserWithResetToken,
   generateRefreshToken,
   saveRefreshToken,
 } from '../../service/user-service';
 import { StatusCodes } from 'http-status-codes';
 import { formatError, formatSuccess } from '../../utils/response-handling';
+import z from 'zod';
+import { EmailTemplate, TemplateVariant } from '../../utils/email-template';
+import { Resend } from 'resend';
 
 export const authController = express.Router();
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 authController.post(
   '/register',
@@ -173,3 +179,62 @@ authController.post('/logout', async (req, res) => {
     })
   );
 });
+
+authController.put(
+  '/init-forget-password',
+  validate({ body: { email: z.email() } }),
+  async (req, res) => {
+    const { email } = req.body;
+
+    const user = await findUserByEmail(email);
+
+    if (user.isErr()) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(formatError(user.error));
+      return;
+    }
+
+    if (!user.value) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(formatError({ message: 'User doesnt exist' }));
+      return;
+    }
+
+    const updatedUser = await generateAndUpdateUserWithResetToken(
+      user.value._id
+    );
+
+    if (updatedUser.isErr()) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(formatError(updatedUser.error));
+      return;
+    }
+
+    if (!updatedUser.value) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(formatError({ message: 'Error while updating user' }));
+      return;
+    }
+
+    await resend.emails.send({
+      from: 'Acme <hasck-mern@resend.dev>',
+      to: [`${updatedUser.value.email}`],
+      subject: 'Password reset request',
+      react: EmailTemplate({
+        firstName: updatedUser.value.username,
+        variant: TemplateVariant.passwordReset,
+        hashedToken: updatedUser.value.passwordResetToken,
+      }),
+    });
+
+    res.status(StatusCodes.OK).json(
+      formatSuccess({
+        message: 'Email sent successfully, please visit you inbox',
+      })
+    );
+  }
+);

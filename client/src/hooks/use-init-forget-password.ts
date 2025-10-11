@@ -2,6 +2,7 @@ import type { InitPasswordResetSchema } from '@/pages/auth/init-forget-page';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import z from 'zod';
+import { BE_URL } from './use-login';
 
 type PasswordResetResponse = {
   message: string;
@@ -15,7 +16,7 @@ export const usePasswordResetInit = () => {
   >({
     mutationFn: async (data: z.infer<typeof InitPasswordResetSchema>) => {
       const response = await axios.put<PasswordResetResponse>(
-        '/api/auth/forgot-password/init',
+        `${BE_URL}/api/v1/auth/init-forget-password`,
         data,
         { withCredentials: true }
       );

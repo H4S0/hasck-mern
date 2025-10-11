@@ -27,7 +27,7 @@ const App = () => (
             element={<InitForgetPasswordPage />}
           />
           <Route
-            path="/auth/password-forget"
+            path="/auth/password-forget/:token"
             element={<ForgetPasswordPage />}
           />
           <Route

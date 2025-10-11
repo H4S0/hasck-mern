@@ -63,7 +63,7 @@ const InitForgetPasswordPage = () => {
               />
 
               <Button type="submit" disabled={isPending} className="w-full">
-                {isPending ? 'Loading...' : 'Login'}
+                {isPending ? 'Loading...' : 'Send email'}
               </Button>
             </form>
           </Form>

@@ -2,12 +2,13 @@ import { passwordSchema } from '@/components/forms/password-reset-form';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import z from 'zod';
+import { BE_URL } from './use-login';
 
 type PasswordResetResponse = {
   message: string;
 };
 
-export const usePasswordReset = (token) => {
+export const usePasswordReset = (token: string) => {
   return useMutation<
     PasswordResetResponse,
     Error,
@@ -20,7 +21,7 @@ export const usePasswordReset = (token) => {
         newPassword: data.newPassword,
       };
       const response = await axios.put<PasswordResetResponse>(
-        `/api/auth/forgot-password/${token}`,
+        `${BE_URL}/api/v1/auth/forgot-password/${token}`,
         newData,
         { withCredentials: true }
       );

@@ -16,6 +16,17 @@ type ErrorResponse = {
   message: string;
 };
 
+export async function generateHashedToken() {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  return hashedToken;
+}
+
 export const findExistingUser = (username: string, email: string) => {
   return ResultAsync.fromPromise(
     User.findOne({
@@ -172,6 +183,25 @@ export const updateUserEmail = (userId: string, email: string) => {
     (e) => ({
       code: 'UPDATING_EMAIL_ERROR',
       message: `Error while updating users email ${err(e as Error)}`,
+    })
+  );
+};
+
+export const generateAndUpdateUserWithResetToken = async (_id: string) => {
+  const hashedToken = await generateHashedToken();
+
+  return ResultAsync.fromPromise(
+    User.findByIdAndUpdate(
+      _id,
+      {
+        passwordResetToken: hashedToken,
+        passwordResetExpire: new Date(Date.now() + 15 * 60 * 1000),
+      },
+      { new: true }
+    ),
+    (e) => ({
+      code: 'UPDATING_USER_ERROR',
+      message: `Error while updating user with new password reset token ${err(e as Error)}`,
     })
   );
 };

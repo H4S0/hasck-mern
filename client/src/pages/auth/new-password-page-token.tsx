@@ -23,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePasswordReset } from '@/hooks/use-new-password-token';
+import { useParams } from 'react-router-dom';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const passwordSchema = z
@@ -35,8 +36,9 @@ export const passwordSchema = z
     path: ['confirmPassword'],
   });
 
-const PasswordResetForm = ({ token }: { token: ParamValue }) => {
-  const { mutate, isPending } = usePasswordReset(token);
+const PasswordResetForm = () => {
+  const { token } = useParams();
+  const { mutate, isPending } = usePasswordReset(token!);
   const form = useForm<z.infer<typeof passwordSchema>>({
     resolver: zodResolver(passwordSchema),
   });
