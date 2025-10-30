@@ -138,11 +138,11 @@ authController.post(
       return;
     }
 
-    res.cookie('refreshToken', refreshToken.value, {
+   res.cookie('refreshToken', refreshToken.value, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 15 * 60 * 1000,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.status(StatusCodes.OK).json(
