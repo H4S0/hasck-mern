@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { Request } from 'express';
+import { ProviderName } from './oauth/providers';
 
 dotenv.config();
 const SALT = 10;
@@ -268,6 +269,21 @@ export async function updateUserPasswordwithToken(
     (e) => ({
       code: 'UPDATING_USER_PASSWORD',
       message: `Error while updating user password ${err(e as Error)}`,
+    })
+  );
+}
+export async function findUserByProvider(
+  provider: ProviderName,
+  providerId: string | number
+) {
+  return ResultAsync.fromPromise(
+    User.findOne({
+      provider: provider,
+      providerId: providerId,
+    }),
+    (e) => ({
+      code: 'FINDING_USER_PASSWORD',
+      message: `Error while finding user by provider ${err(e as Error)}`,
     })
   );
 }

@@ -7,6 +7,7 @@ import {
   deleteRefreshToken,
   findExistingUser,
   findUserByEmail,
+  findUserByProvider,
   findUserByToken,
   findUserByUsername,
   generateAccessToken,
@@ -20,6 +21,7 @@ import { formatError, formatSuccess } from '../../utils/response-handling';
 import z from 'zod';
 import { EmailTemplate, TemplateVariant } from '../../utils/email-template';
 import { Resend } from 'resend';
+import { OAuthService } from '../../service/oauth/oauth-service';
 
 export const authController = express.Router();
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -138,7 +140,7 @@ authController.post(
       return;
     }
 
-   res.cookie('refreshToken', refreshToken.value, {
+    res.cookie('refreshToken', refreshToken.value, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -298,5 +300,101 @@ authController.put(
         message: 'Password updated successfully',
       })
     );
+  }
+);
+
+const ProviderSchema = z.enum(['discord', 'github']);
+
+authController.get(
+  '/oauth',
+  validate({
+    query: {
+      provider: ProviderSchema,
+    },
+  }),
+  async (req, res) => {
+    const { provider } = req.query;
+
+    const oauthRes = OAuthService.create(provider);
+
+    if (oauthRes.isErr()) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json(formatError(oauthRes.error));
+    }
+
+    const oauth = oauthRes.value;
+
+    const redirectUrl = oauth.getAuthRedirectUrl();
+
+    return res.status(StatusCodes.OK).json({
+      data: {
+        redirectUrl: redirectUrl,
+      },
+    });
+  }
+);
+
+authController.get(
+  '/oauth/callback',
+  validate({
+    query: {
+      provider: ProviderSchema,
+      code: z.string(),
+    },
+  }),
+  async (req, res) => {
+    const { provider, code } = req.query;
+
+    const oAuthRes = OAuthService.create(provider);
+
+    if (oAuthRes.isErr()) {
+      res.status(StatusCodes.BAD_REQUEST).json(formatError(oAuthRes.error));
+      return;
+    }
+
+    const tokenRes = await oAuthRes.value.fetchAccessToken(code);
+
+    if (tokenRes.isErr()) {
+      res.status(StatusCodes.BAD_GATEWAY).json(formatError(tokenRes.error));
+      return;
+    }
+
+    const userRes = await oAuthRes.value.fetchUser(tokenRes.value);
+
+    if (userRes.isErr()) {
+      res.status(StatusCodes.BAD_GATEWAY).json(formatError(userRes.error));
+      return;
+    }
+
+    const existingUser = await findUserByProvider(
+      provider,
+      userRes.value.providerId
+    );
+
+    if (existingUser.isErr()) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(formatError(existingUser.error));
+      return;
+    }
+    //TO-DO:make createprovideruser functiom
+    if (!existingUser.value) {
+      const newUser = await createProviderUser(
+        provider,
+        userRes.value.providerId,
+        userRes.value.email,
+        userRes.value.username
+      );
+
+      if (newUser.isErr()) {
+        res
+          .status(StatusCodes.INTERNAL_SERVER_ERROR)
+          .json(formatError(newUser.error));
+        return;
+      }
+    }
+
+    //TO-DO:handle tokens
   }
 );
