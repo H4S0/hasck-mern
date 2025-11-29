@@ -307,3 +307,19 @@ export function createProviderUser(
     (err) => err as Error
   );
 }
+
+export type CleanedUser = {
+  _id: string;
+  username: string;
+  email: string;
+  role: 'user' | 'admin';
+};
+
+export function userToCleanUser(user: UserType): CleanedUser {
+  return {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+  };
+}

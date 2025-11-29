@@ -24,6 +24,7 @@ import { Separator } from '../ui/separator';
 import { useLogin } from '@/hooks/use-login';
 import { useUser } from '@/context/auth-context';
 import { Link, useNavigate } from 'react-router-dom';
+import OAuthButtons from '../oauth-components/oauth-button';
 
 export const LoginSchema = z.object({
   username: z.string(),
@@ -97,6 +98,7 @@ const LoginForm = () => {
       <Separator />
 
       <CardFooter className="flex flex-col items-center gap-5">
+        <OAuthButtons />
         <CardDescription>Dont have account?</CardDescription>
         <Link to="/auth/register" className="w-full">
           <Button className="w-full" variant="secondary">

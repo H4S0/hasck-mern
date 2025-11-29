@@ -3,6 +3,7 @@ import Home from './components/section/home';
 import LoginPage from './pages/auth/login-page';
 import RegisterPage from './pages/auth/register-page';
 import DashboardPage from './pages/dashboard/dashboard-page';
+import OAuthSuccessPage from './pages/auth/oauth-success-page';
 import './index.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { UserProvider } from './context/auth-context';
@@ -17,7 +18,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <UserProvider>
       <BrowserRouter>
-        <Toaster richColors />
+        <Toaster richColors />{' '}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/auth/login" element={<LoginPage />} />
@@ -34,10 +35,12 @@ const App = () => (
             path="/dashboard"
             element={
               <ProtectedRoutes>
-                <DashboardPage />
+                {' '}
+                <DashboardPage />{' '}
               </ProtectedRoutes>
             }
           />
+          <Route path="/oauth/success" element={<OAuthSuccessPage />} />{' '}
         </Routes>
       </BrowserRouter>
     </UserProvider>

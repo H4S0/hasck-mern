@@ -5,7 +5,7 @@ import {
   OAuthProviders,
   GithubEmailResponse,
   GITHUB_URL,
-} from './providers.js';
+} from './providers';
 import { ok, err, Result } from 'neverthrow';
 
 export class OAuthService<P extends ProviderName> {
@@ -21,16 +21,9 @@ export class OAuthService<P extends ProviderName> {
     providerName: T
   ): Result<OAuthService<T>, Error> {
     const provider = OAUTH_PROVIDERS[providerName];
+    if (!provider) return err(new Error('Invalid OAuth provider'));
 
-    if (!provider) {
-      return err(new Error('Invalid OAuth provider'));
-    }
-
-    const redirectUri = process.env.OAUTH_REDIRECT_URL;
-    if (!redirectUri) {
-      return err(new Error('Missing OAUTH_REDIRECT_URL env'));
-    }
-
+    const redirectUri = `http://localhost:3000/api/v1/auth/oauth/callback?provider=${providerName}`;
     return ok(new OAuthService(provider, redirectUri));
   }
 
