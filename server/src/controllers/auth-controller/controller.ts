@@ -3,6 +3,7 @@ import validate from 'express-zod-safe';
 import { LoginSchema, RegisterSchema } from '../../utils/zod-schemas';
 import {
   comparePassword,
+  createProviderUser,
   createUser,
   deleteRefreshToken,
   findExistingUser,
@@ -378,23 +379,90 @@ authController.get(
         .json(formatError(existingUser.error));
       return;
     }
-    //TO-DO:make createprovideruser functiom
-    if (!existingUser.value) {
-      const newUser = await createProviderUser(
-        provider,
-        userRes.value.providerId,
-        userRes.value.email,
-        userRes.value.username
-      );
 
-      if (newUser.isErr()) {
-        res
-          .status(StatusCodes.INTERNAL_SERVER_ERROR)
-          .json(formatError(newUser.error));
-        return;
-      }
+    if (existingUser.value) {
+      res.status(StatusCodes.BAD_REQUEST).json(
+        formatError({
+          message: 'User already exist',
+        })
+      );
+      return;
     }
 
-    //TO-DO:handle tokens
+    const newUser = await createProviderUser(
+      provider,
+      userRes.value.providerId,
+      userRes.value.email,
+      userRes.value.username
+    );
+
+    if (newUser.isErr()) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(formatError(newUser.error));
+      return;
+    }
+
+    const accessToken = await generateAccessToken(
+      newUser.value._id,
+      newUser.value.username,
+      newUser.value.email,
+      newUser.value.role
+    );
+
+    if (accessToken.isErr()) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(formatError(accessToken.error));
+      return;
+    }
+
+    const refreshToken = await generateRefreshToken(
+      newUser.value._id,
+      newUser.value.username,
+      newUser.value.email,
+      newUser.value.role
+    );
+
+    if (refreshToken.isErr()) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(formatError(refreshToken.error));
+      return;
+    }
+
+    const savedToken = await saveRefreshToken(
+      newUser.value._id,
+      refreshToken.value
+    );
+
+    if (savedToken.isErr()) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json(formatError(savedToken.error));
+      return;
+    }
+
+    res.cookie('refreshToken', refreshToken.value, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(StatusCodes.OK).json(
+      formatSuccess({
+        data: {
+          user: {
+            id: newUser.value._id,
+            username: newUser.value.username,
+            email: newUser.value.email,
+            role: newUser.value.role,
+            accessToken: accessToken.value,
+          },
+        },
+        message: 'Login successful',
+      })
+    );
   }
 );

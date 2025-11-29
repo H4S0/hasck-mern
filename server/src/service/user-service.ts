@@ -287,3 +287,23 @@ export async function findUserByProvider(
     })
   );
 }
+
+export function createProviderUser(
+  provider: string,
+  providerId: string | number,
+  email: string | null,
+  username: string
+) {
+  return ResultAsync.fromPromise(
+    User.create({
+      _id: crypto.randomUUID(),
+      provider,
+      providerId,
+      email,
+      username,
+      role: 'user',
+      refreshToken: null,
+    }),
+    (err) => err as Error
+  );
+}
