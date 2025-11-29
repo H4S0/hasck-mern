@@ -2,11 +2,14 @@ import express from 'express';
 import validate from 'express-zod-safe';
 import { LoginSchema, RegisterSchema } from '../../utils/zod-schemas';
 import {
+  CleanedUser,
   comparePassword,
+  createProviderUser,
   createUser,
   deleteRefreshToken,
   findExistingUser,
   findUserByEmail,
+  findUserByProvider,
   findUserByToken,
   findUserByUsername,
   generateAccessToken,
@@ -14,15 +17,18 @@ import {
   generateRefreshToken,
   saveRefreshToken,
   updateUserPasswordwithToken,
+  userToCleanUser,
 } from '../../service/user-service';
 import { StatusCodes } from 'http-status-codes';
 import { formatError, formatSuccess } from '../../utils/response-handling';
 import z from 'zod';
 import { EmailTemplate, TemplateVariant } from '../../utils/email-template';
 import { Resend } from 'resend';
+import { OAuthService } from '../../service/oauth/oauth-service';
 
 export const authController = express.Router();
 const resend = new Resend(process.env.RESEND_API_KEY);
+const CLIENT_URL = 'http://localhost:5173';
 
 authController.post(
   '/register',
@@ -138,7 +144,7 @@ authController.post(
       return;
     }
 
-   res.cookie('refreshToken', refreshToken.value, {
+    res.cookie('refreshToken', refreshToken.value, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -298,5 +304,119 @@ authController.put(
         message: 'Password updated successfully',
       })
     );
+  }
+);
+
+const ProviderSchema = z.enum(['discord', 'github']);
+
+function successFullOauthRedirect(accessToken: string, user: CleanedUser) {
+  const userStr = encodeURIComponent(JSON.stringify(user));
+  return `${CLIENT_URL}/oauth/success?accessToken=${accessToken}&user=${userStr}`;
+}
+
+function errorFullOauthRedirect(message: string) {
+  return `${CLIENT_URL}/oauth/error?message=${encodeURIComponent(message)}`;
+}
+
+authController.get(
+  '/oauth/redirect',
+  validate({ query: { provider: ProviderSchema } }),
+  async (req, res) => {
+    const { provider } = req.query;
+    const oauthRes = OAuthService.create(provider);
+
+    if (oauthRes.isErr())
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json(formatError(oauthRes.error));
+
+    const redirectUrl = oauthRes.value.getAuthRedirectUrl();
+    res.status(StatusCodes.OK).json({ data: { redirectUrl } });
+  }
+);
+
+authController.get(
+  '/oauth/callback',
+  validate({
+    query: { code: z.string(), provider: ProviderSchema.optional() },
+  }),
+  async (req, res) => {
+    const { provider } = req.query;
+    const { code } = req.query;
+
+    if (!provider)
+      return res.redirect(errorFullOauthRedirect('Provider missing'));
+
+    const oAuthRes = OAuthService.create(provider);
+    if (oAuthRes.isErr())
+      return res.redirect(errorFullOauthRedirect(oAuthRes.error.message));
+
+    const tokenRes = await oAuthRes.value.fetchAccessToken(code as string);
+
+    if (tokenRes.isErr())
+      return res.redirect(errorFullOauthRedirect(tokenRes.error.message));
+    const userRes = await oAuthRes.value.fetchUser(tokenRes.value);
+
+    if (userRes.isErr())
+      return res.redirect(errorFullOauthRedirect(userRes.error.message));
+
+    const existingUser = await findUserByProvider(
+      provider,
+      userRes.value.providerId
+    );
+
+    if (existingUser.isErr())
+      return res.redirect(errorFullOauthRedirect(existingUser.error.message));
+
+    let user;
+
+    if (existingUser.value) {
+      user = existingUser.value;
+    } else {
+      const newUser = await createProviderUser(
+        provider,
+        userRes.value.providerId,
+        userRes.value.email,
+        userRes.value.username
+      );
+      if (newUser.isErr())
+        return res.redirect(errorFullOauthRedirect(newUser.error.message));
+      user = newUser.value;
+    }
+
+    const accessToken = await generateAccessToken(
+      user._id,
+      user.username,
+      user.email,
+      user.role
+    );
+    if (accessToken.isErr())
+      return res.redirect(errorFullOauthRedirect(accessToken.error.message));
+
+    const refreshToken = await generateRefreshToken(
+      user._id,
+      user.username,
+      user.email,
+      user.role
+    );
+
+    if (refreshToken.isErr())
+      return res.redirect(errorFullOauthRedirect(refreshToken.error.message));
+
+    const savedToken = await saveRefreshToken(user._id, refreshToken.value);
+
+    if (savedToken.isErr())
+      return res.redirect(errorFullOauthRedirect(savedToken.error.message));
+
+    res.cookie('refreshToken', refreshToken.value, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    const cleanedUser = userToCleanUser(user);
+
+    res.redirect(successFullOauthRedirect(accessToken.value, cleanedUser));
   }
 );

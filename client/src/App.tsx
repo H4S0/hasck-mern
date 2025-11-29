@@ -10,6 +10,7 @@ import ProtectedRoutes from './components/additional/protected-routes';
 import { Toaster } from './components/ui/sonner';
 import InitForgetPasswordPage from './pages/auth/init-forget-page';
 import ForgetPasswordPage from './pages/auth/new-password-page-token';
+import SuccessPage from './pages/auth/oauth/success-page';
 
 const queryClient = new QueryClient();
 
@@ -17,7 +18,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <UserProvider>
       <BrowserRouter>
-        <Toaster richColors />
+        <Toaster richColors />{' '}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/auth/login" element={<LoginPage />} />
@@ -34,10 +35,12 @@ const App = () => (
             path="/dashboard"
             element={
               <ProtectedRoutes>
-                <DashboardPage />
+                {' '}
+                <DashboardPage />{' '}
               </ProtectedRoutes>
             }
           />
+          <Route path="/oauth/success" element={<SuccessPage />} />{' '}
         </Routes>
       </BrowserRouter>
     </UserProvider>

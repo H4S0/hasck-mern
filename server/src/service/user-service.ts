@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { Request } from 'express';
+import { ProviderName } from './oauth/providers';
 
 dotenv.config();
 const SALT = 10;
@@ -270,4 +271,55 @@ export async function updateUserPasswordwithToken(
       message: `Error while updating user password ${err(e as Error)}`,
     })
   );
+}
+export async function findUserByProvider(
+  provider: ProviderName,
+  providerId: string | number
+) {
+  return ResultAsync.fromPromise(
+    User.findOne({
+      provider: provider,
+      providerId: providerId,
+    }),
+    (e) => ({
+      code: 'FINDING_USER_PASSWORD',
+      message: `Error while finding user by provider ${err(e as Error)}`,
+    })
+  );
+}
+
+export function createProviderUser(
+  provider: string,
+  providerId: string | number,
+  email: string | null,
+  username: string
+) {
+  return ResultAsync.fromPromise(
+    User.create({
+      _id: crypto.randomUUID(),
+      provider,
+      providerId,
+      email,
+      username,
+      role: 'user',
+      refreshToken: null,
+    }),
+    (err) => err as Error
+  );
+}
+
+export type CleanedUser = {
+  _id: string;
+  username: string;
+  email: string;
+  role: 'user' | 'admin';
+};
+
+export function userToCleanUser(user: UserType): CleanedUser {
+  return {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+  };
 }
