@@ -28,7 +28,7 @@ import { OAuthService } from '../../service/oauth/oauth-service';
 
 export const authController = express.Router();
 const resend = new Resend(process.env.RESEND_API_KEY);
-const CLIENT_URL = process.env.CLIENT_URL;
+const CLIENT_URL = 'http://localhost:5173';
 
 authController.post(
   '/register',
