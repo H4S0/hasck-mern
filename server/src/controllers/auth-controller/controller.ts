@@ -341,7 +341,7 @@ authController.get(
     query: { code: z.string(), provider: ProviderSchema.optional() },
   }),
   async (req, res) => {
-    const provider = (req.query.provider as 'discord' | 'github') || undefined;
+    const { provider } = req.query;
     const { code } = req.query;
 
     if (!provider)
