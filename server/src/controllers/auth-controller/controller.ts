@@ -324,6 +324,7 @@ authController.get(
   async (req, res) => {
     const { provider } = req.query;
     const oauthRes = OAuthService.create(provider);
+
     if (oauthRes.isErr())
       return res
         .status(StatusCodes.BAD_REQUEST)
@@ -351,10 +352,11 @@ authController.get(
       return res.redirect(errorFullOauthRedirect(oAuthRes.error.message));
 
     const tokenRes = await oAuthRes.value.fetchAccessToken(code as string);
+
     if (tokenRes.isErr())
       return res.redirect(errorFullOauthRedirect(tokenRes.error.message));
-
     const userRes = await oAuthRes.value.fetchUser(tokenRes.value);
+
     if (userRes.isErr())
       return res.redirect(errorFullOauthRedirect(userRes.error.message));
 
@@ -362,10 +364,12 @@ authController.get(
       provider,
       userRes.value.providerId
     );
+
     if (existingUser.isErr())
       return res.redirect(errorFullOauthRedirect(existingUser.error.message));
 
     let user;
+
     if (existingUser.value) {
       user = existingUser.value;
     } else {
@@ -395,10 +399,12 @@ authController.get(
       user.email,
       user.role
     );
+
     if (refreshToken.isErr())
       return res.redirect(errorFullOauthRedirect(refreshToken.error.message));
 
     const savedToken = await saveRefreshToken(user._id, refreshToken.value);
+
     if (savedToken.isErr())
       return res.redirect(errorFullOauthRedirect(savedToken.error.message));
 

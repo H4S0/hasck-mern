@@ -4,7 +4,7 @@ import {
   ProviderName,
   OAuthProviders,
   GithubEmailResponse,
-  GITHUB_URL,
+  GITHUB_API_URL,
 } from './providers';
 import { ok, err, Result } from 'neverthrow';
 
@@ -64,7 +64,8 @@ export class OAuthService<P extends ProviderName> {
       );
 
       return ok(response.data.access_token as string);
-    } catch {
+    } catch (error) {
+      console.error('fetchAccessToken error:', error);
       return err(new Error('Failed to fetch access token'));
     }
   }
@@ -74,24 +75,39 @@ export class OAuthService<P extends ProviderName> {
   ): Promise<Result<ReturnType<OAuthProviders[P]['getUserData']>, Error>> {
     try {
       const baseUserRes = await axios.get(this.provider.userUrl, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: {
+          Authorization:
+            this.provider.name === 'github'
+              ? `token ${accessToken}`
+              : `Bearer ${accessToken}`,
+        },
       });
 
-      let email = baseUserRes.data.email as string | undefined;
+      let email: string | undefined = baseUserRes.data.email;
 
-      if (this.provider.name === 'github') {
+      if (this.provider.name === 'github' && !email) {
         const emailsRes = await axios.get<GithubEmailResponse[]>(
-          `${GITHUB_URL}/user/emails`,
+          `${GITHUB_API_URL}/user/emails`,
           {
-            headers: { Authorization: `Bearer ${accessToken}` },
+            headers: { Authorization: `token ${accessToken}` },
           }
         );
 
-        email = emailsRes.data.find((e) => e.primary)?.email;
+        const primaryVerified = emailsRes.data.find(
+          (e) => e.primary && e.verified
+        );
+        email =
+          primaryVerified?.email ||
+          emailsRes.data.find((e) => e.verified)?.email;
+
+        if (!email)
+          return err(new Error('No verified email found for GitHub user'));
       }
 
+      if (!email) return err(new Error('Email is undefined'));
+
       return ok(
-        this.provider.getUserData(baseUserRes.data, email!) as ReturnType<
+        this.provider.getUserData(baseUserRes.data, email) as ReturnType<
           OAuthProviders[P]['getUserData']
         >
       );

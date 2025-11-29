@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '../ui/button';
-
+import { Github } from 'lucide-react';
+import { FaDiscord } from 'react-icons/fa';
 const BACKEND_URL = 'http://localhost:3000/api/v1';
 
 export default function OAuthButtons() {
@@ -28,23 +29,21 @@ export default function OAuthButtons() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex items-center gap-4">
       <Button
+        variant="outline"
         onClick={() => handleOAuth('github')}
         disabled={loading === 'github'}
       >
-        {loading === 'github'
-          ? 'Connecting to GitHub...'
-          : 'Continue with GitHub'}
+        <Github />
       </Button>
 
       <Button
+        variant="outline"
         onClick={() => handleOAuth('discord')}
         disabled={loading === 'discord'}
       >
-        {loading === 'discord'
-          ? 'Connecting to Discord...'
-          : 'Continue with Discord'}
+        <FaDiscord />
       </Button>
     </div>
   );

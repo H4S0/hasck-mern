@@ -1,5 +1,7 @@
-export const GITHUB_URL = process.env.GITHUB_URL!;
-const DISCORD_URL = process.env.DISCORD_URL!;
+export const DISCORD_URL = process.env.DISCORD_URL!;
+export const GITHUB_AUTH_URL = process.env.GITHUB_AUTH_URL!;
+export const GITHUB_TOKEN_URL = process.env.GITHUB_TOKEN_URL!;
+export const GITHUB_API_URL = process.env.GITHUB_API_URL!;
 
 export type ProviderName = 'discord' | 'github';
 
@@ -38,7 +40,6 @@ export interface OAuthProviders {
       username: string;
     };
   };
-
   github: OAuthProviderBase & {
     getUserData: (
       data: GithubUserResponse,
@@ -66,15 +67,14 @@ export const OAUTH_PROVIDERS: OAuthProviders = {
       username: data.username,
     }),
   },
-
   github: {
     name: 'github',
     clientId: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    authUrl: `${GITHUB_URL}/login/oauth/authorize`,
-    tokenUrl: `${GITHUB_URL}/login/oauth/access_token`,
-    userUrl: `${GITHUB_URL}/user`,
-    scope: 'user:email',
+    authUrl: GITHUB_AUTH_URL,
+    tokenUrl: GITHUB_TOKEN_URL,
+    userUrl: `${GITHUB_API_URL}/user`,
+    scope: 'read:user user:email',
     getUserData: (data, email) => ({
       providerId: data.id,
       email,
