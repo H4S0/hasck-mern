@@ -3,20 +3,20 @@ import z from 'zod';
 import { createSHA512Hash } from '@/lib/hashing';
 import type { passwordSchema } from '@/components/forms/password-reset-form';
 import { createAuthApi } from '@/lib/api-client';
-import type { ApiError } from '@/lib/api-types';
+import type {
+  ApiError,
+  MessageResponse,
+  UpdatePasswordErrorCode,
+} from '@/lib/api-types';
 import { useUser } from '@/context/auth-context';
-
-type PasswordResetResponse = {
-  message: string;
-};
 
 export const useNewPassword = () => {
   const { axios } = useUser();
   const authApi = createAuthApi(axios);
 
   return useMutation<
-    PasswordResetResponse,
-    ApiError,
+    MessageResponse,
+    ApiError<UpdatePasswordErrorCode>,
     z.infer<typeof passwordSchema>
   >({
     mutationFn: async (data: z.infer<typeof passwordSchema>) => {
@@ -30,7 +30,7 @@ export const useNewPassword = () => {
       });
 
       if (result.isErr()) throw result.error;
-      return result.value as PasswordResetResponse;
+      return result.value;
     },
   });
 };

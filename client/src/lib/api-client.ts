@@ -1,19 +1,29 @@
 import axios, { type AxiosInstance } from 'axios';
-import { ResultAsync, err, ok } from 'neverthrow';
-import type { ApiError, ApiSuccessResponse } from './api-types';
+import { ResultAsync } from 'neverthrow';
+import type {
+  ApiError,
+  InitForgetPasswordErrorCode,
+  LoginErrorCode,
+  LoginResponse,
+  MessageResponse,
+  NewPasswordTokenErrorCode,
+  OAuthRedirectErrorCode,
+  OAuthRedirectResponse,
+  RefreshTokenErrorCode,
+  RefreshTokenResponse,
+  RegisterErrorCode,
+  UpdateEmailErrorCode,
+  UpdatePasswordErrorCode,
+} from './api-types';
 
 export const BE_URL = 'http://localhost:3000';
 
-/**
- * Wraps an axios call into a ResultAsync<TData, ApiError>.
- * Extracts the backend error shape automatically — no try-catch needed.
- */
-function apiCall<TData>(
-  request: () => Promise<{ data: ApiSuccessResponse<TData> }>
-): ResultAsync<ApiSuccessResponse<TData>, ApiError> {
+function apiCall<TResponse, TCode extends string>(
+  request: () => Promise<{ data: TResponse }>
+): ResultAsync<TResponse, ApiError<TCode>> {
   return ResultAsync.fromPromise(
     request().then((res) => res.data),
-    (error): ApiError => {
+    (error): ApiError<TCode> => {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status ?? 500;
         const backendError = error.response?.data?.error;
@@ -29,7 +39,11 @@ function apiCall<TData>(
       if (error instanceof Error) {
         return { code: 'NETWORK_ERROR', message: error.message, status: 0 };
       }
-      return { code: 'UNKNOWN_ERROR', message: 'Something went wrong', status: 0 };
+      return {
+        code: 'UNKNOWN_ERROR',
+        message: 'Something went wrong',
+        status: 0,
+      };
     }
   );
 }
@@ -39,7 +53,7 @@ function apiCall<TData>(
 export const api = {
   auth: {
     register(data: { username: string; email: string; password: string }) {
-      return apiCall<undefined>(() =>
+      return apiCall<MessageResponse, RegisterErrorCode>(() =>
         axios.post(`${BE_URL}/api/v1/auth/register`, data, {
           withCredentials: true,
         })
@@ -47,15 +61,7 @@ export const api = {
     },
 
     login(data: { username: string; password: string }) {
-      return apiCall<{
-        user: {
-          id: string;
-          username: string;
-          email: string;
-          role: string;
-          accessToken: string;
-        };
-      }>(() =>
+      return apiCall<LoginResponse, LoginErrorCode>(() =>
         axios.post(`${BE_URL}/api/v1/auth/login`, data, {
           withCredentials: true,
         })
@@ -63,13 +69,13 @@ export const api = {
     },
 
     logout(axiosInstance: AxiosInstance) {
-      return apiCall<undefined>(() =>
+      return apiCall<MessageResponse, never>(() =>
         axiosInstance.post(`${BE_URL}/api/v1/auth/logout`)
       );
     },
 
     initForgetPassword(data: { email: string }) {
-      return apiCall<undefined>(() =>
+      return apiCall<MessageResponse, InitForgetPasswordErrorCode>(() =>
         axios.put(`${BE_URL}/api/v1/auth/init-forget-password`, data, {
           withCredentials: true,
         })
@@ -80,7 +86,7 @@ export const api = {
       token: string,
       data: { oldPassword: string; newPassword: string }
     ) {
-      return apiCall<undefined>(() =>
+      return apiCall<MessageResponse, NewPasswordTokenErrorCode>(() =>
         axios.put(`${BE_URL}/api/v1/auth/new-password/${token}`, data, {
           withCredentials: true,
         })
@@ -88,7 +94,7 @@ export const api = {
     },
 
     oauthRedirect(provider: string) {
-      return apiCall<{ redirectUrl: string }>(() =>
+      return apiCall<OAuthRedirectResponse, OAuthRedirectErrorCode>(() =>
         axios.get(`${BE_URL}/api/v1/auth/oauth/redirect`, {
           params: { provider },
           withCredentials: true,
@@ -99,15 +105,7 @@ export const api = {
 
   verify: {
     refreshToken(axiosInstance: AxiosInstance) {
-      return apiCall<{
-        user: {
-          _id: string;
-          username: string;
-          email: string;
-          role: string;
-          accessToken: string;
-        };
-      }>(() =>
+      return apiCall<RefreshTokenResponse, RefreshTokenErrorCode>(() =>
         axiosInstance.post(`${BE_URL}/api/v1/verify/refresh-token`)
       );
     },
@@ -120,7 +118,7 @@ export function createAuthApi(axiosInstance: AxiosInstance) {
   return {
     user: {
       updatePassword(data: { oldPassword: string; newPassword: string }) {
-        return apiCall<undefined>(() =>
+        return apiCall<MessageResponse, UpdatePasswordErrorCode>(() =>
           axiosInstance.put(`${BE_URL}/api/v1/user/new-password`, data, {
             withCredentials: true,
           })
@@ -128,7 +126,7 @@ export function createAuthApi(axiosInstance: AxiosInstance) {
       },
 
       updateEmail(data: { oldEmail: string; newEmail: string }) {
-        return apiCall<undefined>(() =>
+        return apiCall<MessageResponse, UpdateEmailErrorCode>(() =>
           axiosInstance.put(`${BE_URL}/api/v1/user/email-update`, data, {
             withCredentials: true,
           })

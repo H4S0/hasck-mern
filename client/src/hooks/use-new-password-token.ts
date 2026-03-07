@@ -1,18 +1,18 @@
 import { passwordSchema } from '@/components/forms/password-reset-form';
 import { api } from '@/lib/api-client';
-import type { ApiError } from '@/lib/api-types';
+import type {
+  ApiError,
+  MessageResponse,
+  NewPasswordTokenErrorCode,
+} from '@/lib/api-types';
 import { createSHA512Hash } from '@/lib/hashing';
 import { useMutation } from '@tanstack/react-query';
 import z from 'zod';
 
-type PasswordResetResponse = {
-  message: string;
-};
-
 export const usePasswordReset = (token: string) => {
   return useMutation<
-    PasswordResetResponse,
-    ApiError,
+    MessageResponse,
+    ApiError<NewPasswordTokenErrorCode>,
     z.infer<typeof passwordSchema>
   >({
     mutationFn: async (data: z.infer<typeof passwordSchema>) => {
@@ -26,7 +26,7 @@ export const usePasswordReset = (token: string) => {
       });
 
       if (result.isErr()) throw result.error;
-      return result.value as PasswordResetResponse;
+      return result.value;
     },
   });
 };

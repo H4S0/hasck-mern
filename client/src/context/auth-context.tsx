@@ -2,12 +2,6 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 import axios, { type AxiosInstance } from 'axios';
 import { api } from '@/lib/api-client';
 
-export type UserResponse = {
-  data: {
-    user: User;
-  };
-};
-
 export type User = {
   _id: string;
   username: string;
@@ -41,7 +35,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       return null;
     }
 
-    const refreshedUser = result.value.data!.user as User;
+    const { id, ...rest } = result.value.data.user;
+    const refreshedUser: User = { _id: id, ...rest };
     setUser(refreshedUser);
     return refreshedUser;
   };
