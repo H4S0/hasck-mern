@@ -41,13 +41,17 @@ const LoginForm = () => {
 
   const onSubmit: SubmitHandler<z.infer<typeof LoginSchema>> = (data) => {
     mutate(data, {
-      onSuccess: async (response) => {
-        toast.success(response.message);
-        await refetchUser();
-        navigate('/dashboard');
-      },
-      onError: (error) => {
-        toast.error(error.message);
+      onSuccess: async (result) => {
+        result.match(
+          async (response) => {
+            toast.success(response.message);
+            await refetchUser();
+            navigate('/dashboard');
+          },
+          (error) => {
+            toast.error(error.message);
+          }
+        );
       },
     });
   };

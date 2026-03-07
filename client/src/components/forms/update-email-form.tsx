@@ -28,11 +28,15 @@ const UpdateEmailForm = () => {
 
   const onSubmit: SubmitHandler<z.infer<typeof EmailUpdateSchema>> = (data) => {
     mutate(data, {
-      onSuccess: (response) => {
-        toast.success(response.message);
-      },
-      onError: (error) => {
-        toast.error(error.message);
+      onSuccess: (result) => {
+        result.match(
+          (response) => {
+            toast.success(response.message);
+          },
+          (error) => {
+            toast.error(error.message);
+          }
+        );
       },
     });
   };

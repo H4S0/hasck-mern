@@ -1,27 +1,22 @@
 import type { InitPasswordResetSchema } from '@/pages/auth/init-forget-page';
+import { api } from '@/lib/api-client';
+import type {
+  ApiError,
+  InitForgetPasswordErrorCode,
+  MessageResponse,
+} from '@/lib/api-types';
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+import type { Result } from 'neverthrow';
 import z from 'zod';
-import { BE_URL } from './use-login';
-
-type PasswordResetResponse = {
-  message: string;
-};
 
 export const usePasswordResetInit = () => {
   return useMutation<
-    PasswordResetResponse,
-    Error,
+    Result<MessageResponse, ApiError<InitForgetPasswordErrorCode>>,
+    never,
     z.infer<typeof InitPasswordResetSchema>
   >({
     mutationFn: async (data: z.infer<typeof InitPasswordResetSchema>) => {
-      const response = await axios.put<PasswordResetResponse>(
-        `${BE_URL}/api/v1/auth/init-forget-password`,
-        data,
-        { withCredentials: true }
-      );
-
-      return response.data;
+      return api.auth.initForgetPassword(data);
     },
   });
 };

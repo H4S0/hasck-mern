@@ -1,12 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import axios, { type AxiosInstance } from 'axios';
-import { BE_URL } from '@/hooks/use-login';
-
-export type UserResponse = {
-  data: {
-    user: User;
-  };
-};
+import { api } from '@/lib/api-client';
 
 export type User = {
   _id: string;
@@ -34,16 +28,17 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const refetchUser = async () => {
-    try {
-      const res = await axiosInstance.post<UserResponse>(
-        'http://localhost:3000/api/v1/verify/refresh-token'
-      );
-      setUser(res.data.data.user);
-      return res.data.data.user;
-    } catch {
+    const result = await api.verify.refreshToken(axiosInstance);
+
+    if (result.isErr()) {
       setUser(null);
       return null;
     }
+
+    const { id, ...rest } = result.value.data.user;
+    const refreshedUser: User = { _id: id, ...rest };
+    setUser(refreshedUser);
+    return refreshedUser;
   };
   axiosInstance.interceptors.request.use((config) => {
     if (user?.accessToken) {
@@ -72,13 +67,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const logout = async () => {
-    try {
-      await axiosInstance.post(`${BE_URL}/api/v1/auth/logout`);
-    } catch (err) {
-      console.error('Logout failed', err);
-    } finally {
-      setUser(null);
-    }
+    await api.auth.logout(axiosInstance);
+    setUser(null);
   };
 
   return (

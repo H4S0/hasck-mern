@@ -1,35 +1,26 @@
 import { EmailUpdateSchema } from '@/components/forms/update-email-form';
-import { useMutation } from '@tanstack/react-query';
-import z from 'zod';
-import { BE_URL } from './use-login';
+import { createAuthApi } from '@/lib/api-client';
+import type {
+  ApiError,
+  MessageResponse,
+  UpdateEmailErrorCode,
+} from '@/lib/api-types';
 import { useUser } from '@/context/auth-context';
-import { getErrorMessage } from '@/lib/error-helper';
-
-type EmailUpdateResponse = {
-  message: string;
-};
+import { useMutation } from '@tanstack/react-query';
+import type { Result } from 'neverthrow';
+import z from 'zod';
 
 export const useEmailUpdate = () => {
   const { axios } = useUser();
+  const authApi = createAuthApi(axios);
+
   return useMutation<
-    EmailUpdateResponse,
-    Error,
+    Result<MessageResponse, ApiError<UpdateEmailErrorCode>>,
+    never,
     z.infer<typeof EmailUpdateSchema>
   >({
     mutationFn: async (data: z.infer<typeof EmailUpdateSchema>) => {
-      try {
-        const response = await axios.put(
-          `${BE_URL}/api/v1/user/email-update`,
-          data,
-          {
-            withCredentials: true,
-          }
-        );
-
-        return response.data;
-      } catch (err) {
-        throw new Error(getErrorMessage(err));
-      }
+      return authApi.user.updateEmail(data);
     },
   });
 };

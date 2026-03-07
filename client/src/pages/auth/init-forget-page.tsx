@@ -30,11 +30,15 @@ const InitForgetPasswordPage = () => {
     data
   ) => {
     mutate(data, {
-      onSuccess: (response) => {
-        toast.success(response.message);
-      },
-      onError: (error) => {
-        toast.error(error.message);
+      onSuccess: (result) => {
+        result.match(
+          (response) => {
+            toast.success(response.message);
+          },
+          (error) => {
+            toast.error(error.message);
+          }
+        );
       },
     });
   };

@@ -2,30 +2,23 @@ import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Github } from 'lucide-react';
 import { FaDiscord } from 'react-icons/fa';
-const BACKEND_URL = 'http://localhost:3000/api/v1';
+import { api } from '@/lib/api-client';
 
 export default function OAuthButtons() {
   const [loading, setLoading] = useState<'github' | 'discord' | null>(null);
 
   const handleOAuth = async (provider: 'github' | 'discord') => {
-    try {
-      setLoading(provider);
+    setLoading(provider);
 
-      const res = await fetch(
-        `${BACKEND_URL}/auth/oauth/redirect?provider=${provider}`
-      );
-      const data = await res.json();
+    const result = await api.auth.oauthRedirect(provider);
 
-      if (data?.data?.redirectUrl) {
-        window.location.href = data.data.redirectUrl;
-      } else {
-        console.error('Invalid redirect URL from backend', data);
-        setLoading(null);
-      }
-    } catch (err) {
-      console.error(err);
+    if (result.isErr()) {
+      console.error(result.error.message);
       setLoading(null);
+      return;
     }
+
+    window.location.href = result.value.data!.redirectUrl;
   };
 
   return (
