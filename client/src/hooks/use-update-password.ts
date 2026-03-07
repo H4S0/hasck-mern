@@ -2,9 +2,9 @@ import { useMutation } from '@tanstack/react-query';
 import z from 'zod';
 import { createSHA512Hash } from '@/lib/hashing';
 import type { passwordSchema } from '@/components/forms/password-reset-form';
-import { BE_URL } from './use-login';
+import { createAuthApi } from '@/lib/api-client';
+import type { ApiError } from '@/lib/api-types';
 import { useUser } from '@/context/auth-context';
-import { getErrorMessage } from '@/lib/error-helper';
 
 type PasswordResetResponse = {
   message: string;
@@ -12,31 +12,25 @@ type PasswordResetResponse = {
 
 export const useNewPassword = () => {
   const { axios } = useUser();
+  const authApi = createAuthApi(axios);
+
   return useMutation<
     PasswordResetResponse,
-    Error,
+    ApiError,
     z.infer<typeof passwordSchema>
   >({
     mutationFn: async (data: z.infer<typeof passwordSchema>) => {
-      try {
-        const oldHashedPassword = await createSHA512Hash(data.oldPassword);
-        const newHashedPassword = await createSHA512Hash(data.newPassword);
+      const oldHashedPassword = await createSHA512Hash(data.oldPassword);
+      const newHashedPassword = await createSHA512Hash(data.newPassword);
 
-        const newData = {
-          ...data,
-          oldPassword: oldHashedPassword,
-          newPassword: newHashedPassword,
-        };
-        const response = await axios.put<PasswordResetResponse>(
-          `${BE_URL}/api/v1/user/new-password`,
-          newData,
-          { withCredentials: true }
-        );
+      const result = await authApi.user.updatePassword({
+        ...data,
+        oldPassword: oldHashedPassword,
+        newPassword: newHashedPassword,
+      });
 
-        return response.data;
-      } catch (err) {
-        throw new Error(getErrorMessage(err));
-      }
+      if (result.isErr()) throw result.error;
+      return result.value as PasswordResetResponse;
     },
   });
 };

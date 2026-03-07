@@ -1,9 +1,9 @@
 import { EmailUpdateSchema } from '@/components/forms/update-email-form';
+import { createAuthApi } from '@/lib/api-client';
+import type { ApiError } from '@/lib/api-types';
+import { useUser } from '@/context/auth-context';
 import { useMutation } from '@tanstack/react-query';
 import z from 'zod';
-import { BE_URL } from './use-login';
-import { useUser } from '@/context/auth-context';
-import { getErrorMessage } from '@/lib/error-helper';
 
 type EmailUpdateResponse = {
   message: string;
@@ -11,25 +11,18 @@ type EmailUpdateResponse = {
 
 export const useEmailUpdate = () => {
   const { axios } = useUser();
+  const authApi = createAuthApi(axios);
+
   return useMutation<
     EmailUpdateResponse,
-    Error,
+    ApiError,
     z.infer<typeof EmailUpdateSchema>
   >({
     mutationFn: async (data: z.infer<typeof EmailUpdateSchema>) => {
-      try {
-        const response = await axios.put(
-          `${BE_URL}/api/v1/user/email-update`,
-          data,
-          {
-            withCredentials: true,
-          }
-        );
+      const result = await authApi.user.updateEmail(data);
 
-        return response.data;
-      } catch (err) {
-        throw new Error(getErrorMessage(err));
-      }
+      if (result.isErr()) throw result.error;
+      return result.value as EmailUpdateResponse;
     },
   });
 };
