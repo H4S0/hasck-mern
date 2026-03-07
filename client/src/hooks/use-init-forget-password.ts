@@ -6,19 +6,17 @@ import type {
   MessageResponse,
 } from '@/lib/api-types';
 import { useMutation } from '@tanstack/react-query';
+import type { Result } from 'neverthrow';
 import z from 'zod';
 
 export const usePasswordResetInit = () => {
   return useMutation<
-    MessageResponse,
-    ApiError<InitForgetPasswordErrorCode>,
+    Result<MessageResponse, ApiError<InitForgetPasswordErrorCode>>,
+    never,
     z.infer<typeof InitPasswordResetSchema>
   >({
     mutationFn: async (data: z.infer<typeof InitPasswordResetSchema>) => {
-      const result = await api.auth.initForgetPassword(data);
-
-      if (result.isErr()) throw result.error;
-      return result.value;
+      return api.auth.initForgetPassword(data);
     },
   });
 };

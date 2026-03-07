@@ -7,24 +7,22 @@ import type {
 } from '@/lib/api-types';
 import { createSHA512Hash } from '@/lib/hashing';
 import { useMutation } from '@tanstack/react-query';
+import type { Result } from 'neverthrow';
 import z from 'zod';
 
 export const useRegister = () => {
   return useMutation<
-    MessageResponse,
-    ApiError<RegisterErrorCode>,
+    Result<MessageResponse, ApiError<RegisterErrorCode>>,
+    never,
     z.infer<typeof RegisterSchema>
   >({
     mutationFn: async (data: z.infer<typeof RegisterSchema>) => {
       const hashedPassword = await createSHA512Hash(data.password);
 
-      const result = await api.auth.register({
+      return api.auth.register({
         ...data,
         password: hashedPassword,
       });
-
-      if (result.isErr()) throw result.error;
-      return result.value;
     },
   });
 };

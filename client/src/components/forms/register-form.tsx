@@ -44,12 +44,16 @@ const RegisterForm = () => {
   const navigate = useNavigate();
   const onSubmit: SubmitHandler<z.infer<typeof RegisterSchema>> = (data) => {
     mutate(data, {
-      onSuccess: (response) => {
-        toast.success(response.message);
-        navigate('/auth/login');
-      },
-      onError: (error) => {
-        toast.error(error.message);
+      onSuccess: (result) => {
+        result.match(
+          (response) => {
+            toast.success(response.message);
+            navigate('/auth/login');
+          },
+          (error) => {
+            toast.error(error.message);
+          }
+        );
       },
     });
   };

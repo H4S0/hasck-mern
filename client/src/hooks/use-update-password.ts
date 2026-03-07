@@ -9,28 +9,26 @@ import type {
   UpdatePasswordErrorCode,
 } from '@/lib/api-types';
 import { useUser } from '@/context/auth-context';
+import type { Result } from 'neverthrow';
 
 export const useNewPassword = () => {
   const { axios } = useUser();
   const authApi = createAuthApi(axios);
 
   return useMutation<
-    MessageResponse,
-    ApiError<UpdatePasswordErrorCode>,
+    Result<MessageResponse, ApiError<UpdatePasswordErrorCode>>,
+    never,
     z.infer<typeof passwordSchema>
   >({
     mutationFn: async (data: z.infer<typeof passwordSchema>) => {
       const oldHashedPassword = await createSHA512Hash(data.oldPassword);
       const newHashedPassword = await createSHA512Hash(data.newPassword);
 
-      const result = await authApi.user.updatePassword({
+      return authApi.user.updatePassword({
         ...data,
         oldPassword: oldHashedPassword,
         newPassword: newHashedPassword,
       });
-
-      if (result.isErr()) throw result.error;
-      return result.value;
     },
   });
 };
