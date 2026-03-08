@@ -1,37 +1,12 @@
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
-import { routeTree } from './routeTree.gen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/utils/auth/auth';
-import { useAuth } from '@/utils/auth/use-auth';
-import { Toaster } from './components/ui/sonner';
 import './globals.css';
+import { AuthProvider } from './utils/auth/auth';
+import InnerApp, { createAppRouter } from './inner-app';
 
 const queryClient = new QueryClient();
-const router = createRouter({
-  routeTree,
-  context: { queryClient, auth: null },
-  defaultPreload: 'intent',
-});
-
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router;
-  }
-}
-
-function InnerApp() {
-  const auth = useAuth();
-
-  return (
-    <>
-      <RouterProvider router={router} context={{ auth }} />
-      <Toaster richColors />
-    </>
-  );
-}
-
+const router = createAppRouter(queryClient);
 const rootElement = document.getElementById('app')!;
 
 if (!rootElement.innerHTML) {
@@ -40,7 +15,7 @@ if (!rootElement.innerHTML) {
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <InnerApp />
+          <InnerApp router={router} />
         </AuthProvider>
       </QueryClientProvider>
     </StrictMode>,
