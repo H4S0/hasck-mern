@@ -4,7 +4,7 @@ import type {
   ApiError,
   MessageResponse,
   NewPasswordTokenErrorCode,
-} from '@/lib/api-types';
+} from '@/utils/api/api-types';
 import { createSHA512Hash } from '@/lib/hashing';
 import { useMutation } from '@tanstack/react-query';
 import type { Result } from 'neverthrow';

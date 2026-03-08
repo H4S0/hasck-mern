@@ -4,7 +4,7 @@ import type {
   ApiError,
   MessageResponse,
   UpdateEmailErrorCode,
-} from '@/lib/api-types';
+} from '@/utils/api/api-types';
 import { useUser } from '@/context/auth-context';
 import { useMutation } from '@tanstack/react-query';
 import type { Result } from 'neverthrow';

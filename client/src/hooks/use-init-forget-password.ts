@@ -4,7 +4,7 @@ import type {
   ApiError,
   InitForgetPasswordErrorCode,
   MessageResponse,
-} from '@/lib/api-types';
+} from '@/utils/api/api-types';
 import { useMutation } from '@tanstack/react-query';
 import type { Result } from 'neverthrow';
 import z from 'zod';
