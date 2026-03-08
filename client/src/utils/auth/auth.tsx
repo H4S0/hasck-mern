@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { api } from '@/utils/api/api-client';
@@ -10,19 +9,8 @@ import {
   setStoredUser,
   setAccessToken,
 } from './auth-storage';
-import { toast } from 'sonner';
-
-export interface AuthContextType {
-  isAuthenticated: boolean;
-  user: User | null;
-  axios: import('axios').AxiosInstance;
-  loginUser: (data: { username: string; password: string }) => Promise<void>;
-  logout: () => Promise<void>;
-  refetchUser: () => Promise<User | null>;
-  setOAuthUser: (user: User) => void;
-}
-
-const AuthContext = React.createContext<AuthContextType | null>(null);
+import { AuthContext } from './auth-context';
+export type { AuthContextType } from './auth-context';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(getStoredUser());
@@ -86,18 +74,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password: hashedPassword,
       });
 
-      result.match(
-        (response) => {
-          toast.success(response.message);
-          const loggedInUser = response.data.user;
-          setUser(loggedInUser);
-          setStoredUser(loggedInUser);
-        },
-        (error) => {
-          toast.error(error.message);
-          throw error;
-        },
-      );
+      if (result.isOk()) {
+        const loggedInUser = result.value.data.user;
+        setUser(loggedInUser);
+        setStoredUser(loggedInUser);
+      }
+
+      return result;
     },
     [],
   );
@@ -127,14 +110,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refetchUser,
       setOAuthUser,
     }),
-    [isAuthenticated, user, axiosInstance, loginUser, logout, refetchUser, setOAuthUser],
+    [
+      isAuthenticated,
+      user,
+      axiosInstance,
+      loginUser,
+      logout,
+      refetchUser,
+      setOAuthUser,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const ctx = React.useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
-  return ctx;
 }

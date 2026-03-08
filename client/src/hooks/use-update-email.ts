@@ -5,7 +5,7 @@ import type {
   MessageResponse,
   UpdateEmailErrorCode,
 } from '@/utils/api/api-types';
-import { useAuth } from '@/utils/auth/auth';
+import { useAuth } from '@/utils/auth/use-auth';
 import { useMutation } from '@tanstack/react-query';
 import type { Result } from 'neverthrow';
 import z from 'zod';

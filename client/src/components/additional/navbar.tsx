@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import LogoutButton from './logout-button';
-import { useAuth } from '@/utils/auth/auth';
+import { useAuth } from '@/utils/auth/use-auth';
 
 export const Navbar = () => {
   const { user } = useAuth();

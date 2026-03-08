@@ -1,5 +1,5 @@
 import StatusCard from '@/components/oauth-components/status-card';
-import { useAuth } from '@/utils/auth/auth';
+import { useAuth } from '@/utils/auth/use-auth';
 import { BadgeCheck } from 'lucide-react';
 import { useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';

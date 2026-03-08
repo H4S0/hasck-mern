@@ -8,7 +8,7 @@ import type {
   MessageResponse,
   UpdatePasswordErrorCode,
 } from '@/utils/api/api-types';
-import { useAuth } from '@/utils/auth/auth';
+import { useAuth } from '@/utils/auth/use-auth';
 import type { Result } from 'neverthrow';
 
 export const useNewPassword = () => {

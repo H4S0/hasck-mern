@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/utils/auth/auth';
+import { useAuth } from '@/utils/auth/use-auth';
 import { useNavigate } from '@tanstack/react-router';
 
 const LogoutButton = () => {

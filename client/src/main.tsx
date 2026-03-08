@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { routeTree } from './routeTree.gen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider, useAuth } from '@/utils/auth/auth';
+import { AuthProvider } from '@/utils/auth/auth';
+import { useAuth } from '@/utils/auth/use-auth';
 import { Toaster } from './components/ui/sonner';
 import './globals.css';
 

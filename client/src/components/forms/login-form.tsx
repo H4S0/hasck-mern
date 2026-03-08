@@ -22,7 +22,7 @@ import { Input } from '../ui/input';
 import { toast } from 'sonner';
 import { Separator } from '../ui/separator';
 import { useLogin } from '@/hooks/use-login';
-import { useAuth } from '@/utils/auth/auth';
+import { useAuth } from '@/utils/auth/use-auth';
 import { Link, useNavigate } from '@tanstack/react-router';
 import OAuthButtons from '../oauth-components/oauth-button';
 
