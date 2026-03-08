@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Github } from 'lucide-react';
 import { FaDiscord } from 'react-icons/fa';
-import { api } from '@/lib/api-client';
+import { api } from '@/utils/api/api-client';
 
 export default function OAuthButtons() {
   const [loading, setLoading] = useState<'github' | 'discord' | null>(null);

@@ -22,8 +22,8 @@ import { Input } from '../ui/input';
 import { toast } from 'sonner';
 import { Separator } from '../ui/separator';
 import { useLogin } from '@/hooks/use-login';
-import { useUser } from '@/context/auth-context';
-import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/utils/auth/auth';
+import { Link, useNavigate } from '@tanstack/react-router';
 import OAuthButtons from '../oauth-components/oauth-button';
 
 export const LoginSchema = z.object({
@@ -32,7 +32,7 @@ export const LoginSchema = z.object({
 });
 
 const LoginForm = () => {
-  const { refetchUser } = useUser();
+  const { refetchUser } = useAuth();
   const { mutate, isPending } = useLogin();
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -104,12 +104,12 @@ const LoginForm = () => {
       <CardFooter className="flex flex-col items-center gap-5">
         <OAuthButtons />
         <CardDescription>Dont have account?</CardDescription>
-        <Link to="/auth/register" className="w-full">
+        <Link to="/register" className="w-full">
           <Button className="w-full" variant="secondary">
             Make one
           </Button>
         </Link>
-        <Link to="/auth/init-password-forget" className="w-full">
+        <Link to="/init-password-forget" className="w-full">
           <Button className="w-full" variant="outline">
             Forgot password
           </Button>

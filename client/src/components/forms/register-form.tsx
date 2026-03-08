@@ -22,7 +22,7 @@ import {
 } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { useRegister } from '@/hooks/useRegister';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '@tanstack/react-router';
 
 export const RegisterSchema = z
   .object({
@@ -48,7 +48,7 @@ const RegisterForm = () => {
         result.match(
           (response) => {
             toast.success(response.message);
-            navigate('/auth/login');
+            navigate('/login');
           },
           (error) => {
             toast.error(error.message);
@@ -136,7 +136,7 @@ const RegisterForm = () => {
 
       <CardFooter className="flex flex-col items-center gap-5">
         <CardDescription>Already have account?</CardDescription>
-        <Link to="/auth/login" className="w-full">
+        <Link to="/login" className="w-full">
           <Button className="w-full" variant="secondary">
             Login
           </Button>

@@ -1,5 +1,5 @@
 import type { InitPasswordResetSchema } from '@/pages/auth/init-forget-page';
-import { api } from '@/lib/api-client';
+import { api } from '@/utils/api/api-client';
 import type {
   ApiError,
   InitForgetPasswordErrorCode,

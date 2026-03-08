@@ -1,11 +1,11 @@
 import { LoginSchema } from '@/components/forms/login-form';
-import { api } from '@/lib/api-client';
+import { api } from '@/utils/api/api-client';
 import type {
   ApiError,
   LoginErrorCode,
   LoginResponse,
 } from '@/utils/api/api-types';
-import { createSHA512Hash } from '@/lib/hashing';
+import { createSHA512Hash } from '@/utils/auth/hashing';
 import { useMutation } from '@tanstack/react-query';
 import type { Result } from 'neverthrow';
 import z from 'zod';

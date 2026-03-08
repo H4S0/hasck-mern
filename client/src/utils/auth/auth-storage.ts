@@ -1,7 +1,10 @@
-import type z from 'zod';
-import { UserSchema } from '../api/user';
-
-export type User = z.infer<typeof UserSchema>;
+export type User = {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  accessToken: string;
+};
 
 const key = 'hammerize.auth.user';
 

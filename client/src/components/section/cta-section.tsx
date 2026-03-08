@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { Button } from '../ui/button';
 
 export const CtaSection = () => {
@@ -22,7 +22,7 @@ export const CtaSection = () => {
             size="lg"
             className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg"
           >
-            <Link to="/auth/register">Start Building Now →</Link>
+            <Link to="/register">Start Building Now →</Link>
           </Button>
         </div>
       </div>

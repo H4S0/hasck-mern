@@ -1,9 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_public')({
-  component: PublicLayout,
+  component: () => <Outlet />,
 });
-
-function PublicLayout() {
-  return <div>hero</div>;
-}
