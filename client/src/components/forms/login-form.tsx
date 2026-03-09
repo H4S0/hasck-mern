@@ -46,11 +46,11 @@ const LoginForm = () => {
           async (response) => {
             toast.success(response.message);
             await refetchUser();
-            navigate('/dashboard');
+            navigate({ to: '/dashboard' });
           },
           (error) => {
             toast.error(error.message);
-          }
+          },
         );
       },
     });

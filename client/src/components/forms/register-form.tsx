@@ -48,11 +48,11 @@ const RegisterForm = () => {
         result.match(
           (response) => {
             toast.success(response.message);
-            navigate('/login');
+            navigate({ to: '/login' });
           },
           (error) => {
             toast.error(error.message);
-          }
+          },
         );
       },
     });
