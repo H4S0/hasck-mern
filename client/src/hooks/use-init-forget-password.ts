@@ -1,10 +1,10 @@
 import type { InitPasswordResetSchema } from '@/pages/auth/init-forget-page';
-import { api } from '@/lib/api-client';
+import { api } from '@/utils/api/api-client';
 import type {
   ApiError,
   InitForgetPasswordErrorCode,
   MessageResponse,
-} from '@/lib/api-types';
+} from '@/utils/api/api-types';
 import { useMutation } from '@tanstack/react-query';
 import type { Result } from 'neverthrow';
 import z from 'zod';

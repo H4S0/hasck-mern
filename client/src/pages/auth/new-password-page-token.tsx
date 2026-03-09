@@ -23,7 +23,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePasswordReset } from '@/hooks/use-new-password-token';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
+import { Route } from '@/routes/_auth_public/password-forget.$token';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const passwordSchema = z
@@ -37,8 +38,8 @@ export const passwordSchema = z
   });
 
 const PasswordResetForm = () => {
-  const { token } = useParams();
-  const { mutate, isPending } = usePasswordReset(token!);
+  const { token } = Route.useParams();
+  const { mutate, isPending } = usePasswordReset(token);
   const form = useForm<z.infer<typeof passwordSchema>>({
     resolver: zodResolver(passwordSchema),
   });
@@ -50,7 +51,7 @@ const PasswordResetForm = () => {
         result.match(
           (response) => {
             toast.success(response.message);
-            navigate('/auth/login');
+            navigate('/login');
           },
           (error) => {
             toast.error(error.message);

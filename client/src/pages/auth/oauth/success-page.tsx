@@ -1,12 +1,12 @@
 import StatusCard from '@/components/oauth-components/status-card';
-import { useUser } from '@/context/auth-context';
+import { useAuth } from '@/utils/auth/use-auth';
 import { BadgeCheck } from 'lucide-react';
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 
 const SuccessPage = () => {
   const navigate = useNavigate();
-  const auth = useUser();
+  const auth = useAuth();
   useEffect(() => {
     const run = async () => {
       const params = new URLSearchParams(window.location.search);
@@ -19,13 +19,13 @@ const SuccessPage = () => {
       try {
         const user = JSON.parse(userRaw);
 
-        auth.setUser(user);
+        auth.setOAuthUser({ ...user, accessToken });
 
         if (auth.refetchUser) {
           await auth.refetchUser();
         }
 
-        navigate('/dashboard');
+        navigate({ to: '/dashboard' });
       } catch (err) {
         console.error('Failed parsing user from URL:', err);
       }

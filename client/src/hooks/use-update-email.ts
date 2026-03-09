@@ -1,17 +1,17 @@
 import { EmailUpdateSchema } from '@/components/forms/update-email-form';
-import { createAuthApi } from '@/lib/api-client';
+import { createAuthApi } from '@/utils/api/api-client';
 import type {
   ApiError,
   MessageResponse,
   UpdateEmailErrorCode,
-} from '@/lib/api-types';
-import { useUser } from '@/context/auth-context';
+} from '@/utils/api/api-types';
+import { useAuth } from '@/utils/auth/use-auth';
 import { useMutation } from '@tanstack/react-query';
 import type { Result } from 'neverthrow';
 import z from 'zod';
 
 export const useEmailUpdate = () => {
-  const { axios } = useUser();
+  const { axios } = useAuth();
   const authApi = createAuthApi(axios);
 
   return useMutation<

@@ -1,5 +1,5 @@
 import { Button } from '../ui/button';
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 
 export const HeroSection = () => {
   return (
@@ -24,7 +24,7 @@ export const HeroSection = () => {
             size="lg"
             className="text-sm md:text-base bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg"
           >
-            <Link to="/auth/register">Get Started →</Link>
+            <Link to="/register">Get Started →</Link>
           </Button>
           <Button
             asChild
@@ -32,7 +32,7 @@ export const HeroSection = () => {
             variant="outline"
             className="text-sm md:text-base border-2 hover:bg-background/50 backdrop-blur-sm"
           >
-            <Link to="/auth/login">Explore Features</Link>
+            <Link to="/login">Explore Features</Link>
           </Button>
         </div>
       </div>

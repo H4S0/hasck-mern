@@ -1,17 +1,16 @@
 import { Button } from '@/components/ui/button';
-import { useUser } from '@/context/auth-context';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/utils/auth/use-auth';
+import { useNavigate } from '@tanstack/react-router';
 
 const LogoutButton = () => {
-  const { logout, setUser } = useUser();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   return (
     <Button
       variant="secondary"
       onClick={async () => {
         await logout();
-        setUser(null);
-        navigate('/');
+        navigate({ to: '/' });
       }}
     >
       Logout
